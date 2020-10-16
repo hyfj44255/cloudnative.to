@@ -1,15 +1,17 @@
 ---
 title: "【译】如何使用istio处理亲和性网络请求"
 description: "本文翻译自 Alex Holmes 的文章 Request affinity with istio。"
-author: "Alex Holmes"
+author: "CashApp"
 translator: "[苏楚霖](https://nicksu86.github.io/)"
 image: "/images/blog/request-affinity-with-istio.jpg"
 categories: ["Istio"]
 tags: ["Istio","翻译"]
 date: 2020-10-13T23:00:00+08:00
+avatar: "./images/cashapp.png"
+profile: "由 Square 公司开发的一个移动支付系统，支持用户使用一个移动手机应用转钱给其他用户"
 type: "post"
 ---
-本文译自[Request affinity with istio](https://cashapp.github.io/2020-08-04/request-affinity-with-istio)。
+本文译自 [Request affinity with istio](https://cashapp.github.io/2020-08-04/request-affinity-with-istio)。
 
 ## 背景介绍
 很多 Cash App 的应用都会有一系列运行在 AWS 的 Kubernetes 集群上的分布式服务。们的工程团队也在几年前开始把应用迁移到 Kubernetes 上面， 最近我们才开始使用 Istio 作为一种服务网格的解决方案来解决我们服务之间的通信。在这篇文章里，我会专注在 Istio 接管流量负载均衡这一功能是如何大幅度的提高我们的服务的性能和稳定性。
@@ -20,7 +22,7 @@ type: "post"
 
 我们在 AWS 环境中部署了一套 Kafka 集群，用于异步的消息订阅和发布。另外还使用了一套 Kotlin 服务用于连接传统服务，evently-cloud，座落在传统服务跟 Kafka 之间，它暴露出一些 API 用于根据指定偏移量获取 Kafka 消息。
 
-Kafka 客户端需要数秒钟时间来初始化并定位到 Kafka 主题中的指定偏移处。但是我们并不希望所有 API 调用都需要耗费数秒时间，因此，使用 evently-cloud 为每个消费者提前主动地缓存 Kafka 消息。为了保证这个缓存被高效使用，同一个主题和消费者的请求必须是由相同的 pod 来处理。也就是说，请求基于请求对应的 kafka 主题和特定的 pod 有一定的亲和性需求，而 pod 跟主题之前的亲和性问题则是由 evently-cloud 的代码解决的。在以前，当收到一个请求时，evently-cloud 会使用连续的哈希来确认哪些 pod 负责对应的主题，然后调用那些 pod 来获取 Kafka 数据，因为 evently-cloud 有很多的 pod，因此大部分的请求都是由两个不同的 pod 负责处理完成的：
+Kafka 客户端需要数秒钟时间来初始化并定位到 Kafka 主题中的指定偏移处。但是我们并不希望所有 API 调用都需要耗费数秒时间，因此，使用 evently-cloud 为每个消费者提前主动地缓存 Kafka 消息。为了保证这个缓存被高效使用，同一个主题和消费者的请求必须是由相同的 pod 来处理。也就是说，请求基于对应的 kafka 主题和特定的 pod 有一定的亲和性需求，而 pod 跟主题之间的亲和性问题则是由 evently-cloud 的代码解决的。在以前，当收到一个请求时，evently-cloud 会使用连续的哈希来确认哪些 pod 负责对应的主题，然后调用那些 pod 来获取 Kafka 数据，因为 evently-cloud 有很多的 pod，因此大部分的请求都是由两个不同的 pod 负责处理完成的：
 
 !["istio-before"](./images/istio-before.png)
 
