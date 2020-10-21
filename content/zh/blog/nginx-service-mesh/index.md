@@ -4,7 +4,7 @@ description: "本文翻译自 Nginx 官方博客初识 NGINX 服务网格。"
 author: "Nginx"
 translator: "[Lis](https://github.com/hmtai)"
 image: "/images/blog/introducing-nginx-service-mesh.png"
-categories: ["Service Mesh"]
+categories: ["service-mesh"]
 tags: ["Service Mesh"]
 date: 2020-10-13T23:00:00+08:00
 avatar: "./images/nginx.jpeg"
@@ -112,7 +112,7 @@ zipkin-6f7cbf5467-ns6wc              1/1     Running   0          2d19h
 例如，如果我们将 **sleep** 应用程序部署在**默认**名称空间中，然后检查 Pod，我们会看到两个容器正在运行—— **sleep** 应用程序和关联的 NGINX Plus 边车容器：
 
 ```
-$ kubectl apply –f sleep.yaml 
+$ kubectl apply –f sleep.yaml
 $ kubectl get pods –n default
 NAME                     READY   STATUS    RESTARTS   AGE
 sleep-674f75ff4d-gxjf2   2/2     Running   0          5h23m
